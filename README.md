@@ -8,7 +8,7 @@ I started writing this, since I found more generic home automation software like
 
 Use it like so:
 
-    ./goddl --ip $YOUR_GATEWAY_IP --store-config
+    ./goddl --ip $YOUR_GATEWAY_IP --storeconfig
 
 When no API key is present (on the first run usually there isn't), it will try to register with the gateway. Press the link button in the deCONZ software before running the binary.
 
