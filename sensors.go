@@ -117,6 +117,12 @@ func (si SensorInfo) Valid() bool {
 	return err == nil
 }
 
+type sensorJson struct {
+	Name  string
+	Type  string
+	Value string
+}
+
 type SensorMap map[int]SensorInfo
 
 func (sm *SensorMap) HeaderStrings() []string {
@@ -139,4 +145,21 @@ func (sm *SensorMap) DataStrings() []string {
 		}
 	}
 	return result
+}
+
+func (sm *SensorMap) Json(indent bool) ([]byte, error) {
+	var data []sensorJson
+	for i := 1; i <= len(*sm); i++ {
+		if (*sm)[i].Valid() {
+			data = append(data, sensorJson{
+				Name:  (*sm)[i].Name,
+				Type:  (*sm)[i].Type,
+				Value: (*sm)[i].SensorValue(),
+			})
+		}
+	}
+	if indent {
+		return json.MarshalIndent(data, "", " ")
+	}
+	return json.Marshal(data)
 }
