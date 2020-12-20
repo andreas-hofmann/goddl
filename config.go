@@ -17,7 +17,7 @@ func (e ConfigError) Error() string {
 
 type Config struct {
 	ApiKey       string
-	RemoteIp     string
+	Remote       string
 	Logfile      string
 	Logtype      string
 	PollInterval int
@@ -26,7 +26,7 @@ type Config struct {
 func NewConfig() Config {
 	return Config{
 		ApiKey:       "",
-		RemoteIp:     "localhost",
+		Remote:       "localhost",
 		Logfile:      "./data.log",
 		Logtype:      "csv",
 		PollInterval: 60,

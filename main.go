@@ -12,13 +12,13 @@ import (
 
 func main() {
 	var args struct {
-		Ip          string
-		Apikey      string
-		Logfile     string `default:"./data.log"`
-		Configfile  string `default:"./config.yaml"`
-		StoreConfig bool   `default:"false"`
-		Debug       bool   `default:"false"`
-		Logtype     string `default:"csv" help:"The data format to log. Possible values: json,csv"`
+		Remote      string `help:"The gateway IP to connect to."`
+		Apikey      string `help:"The APIkey to use for the gateway connection. If missing, a new one is registered."`
+		Logfile     string `help:"The file to store the data. Default: ./data.log"`
+		Configfile  string `help:"The configfile to use." default:"./config.yaml"`
+		StoreConfig bool   `help:"Store the current config (+ a new API key) to the configfile. Default: false"`
+		Debug       bool   `help:"Enable debug messages. Default: false"`
+		Logtype     string `help:"The data format to log. Possible values: json,csv. Default: csv"`
 	}
 
 	arg.MustParse(&args)
@@ -40,20 +40,20 @@ func main() {
 		config.ApiKey = args.Apikey
 	}
 
-	if args.Ip != "" {
-		config.RemoteIp = args.Ip
+	if args.Remote != "" {
+		config.Remote = args.Remote
 	}
 
-	if config.RemoteIp == "" {
-		logger.Fatal("Missing IP.")
-	}
-
-	if args.Apikey != "" {
-		config.ApiKey = args.Apikey
+	if args.Logfile != "" {
+		config.Logfile = args.Logfile
 	}
 
 	if args.Logtype != "" {
 		config.Logtype = args.Logtype
+	}
+
+	if config.Remote == "" {
+		logger.Fatal("Missing IP.")
 	}
 
 	switch config.Logtype {
@@ -67,7 +67,7 @@ func main() {
 
 	if config.ApiKey == "" {
 		logger.Info("No API key supplied. Registering one.")
-		answer, err := Register(config.RemoteIp)
+		answer, err := Register(config.Remote)
 		if err != nil {
 			logger.Fatal("Error registering apikey:", err)
 		} else if answer.Error.Type != 0 {
@@ -86,7 +86,7 @@ func main() {
 
 	var lastSensors SensorMap
 
-	logger.Info("Connecting to host", config.RemoteIp)
+	logger.Info("Connecting to host", config.Remote)
 
 	logfile, err := os.OpenFile(config.Logfile, (os.O_WRONLY | os.O_APPEND), 0644)
 	if err != nil {
@@ -101,7 +101,7 @@ func main() {
 	csvWriter := csv.NewWriter(logfile)
 
 	for {
-		sensors, error := GetSensorMap(config.RemoteIp, config.ApiKey)
+		sensors, error := GetSensorMap(config.Remote, config.ApiKey)
 		if error != nil {
 			logger.Fatal("Error fetching sensor list:", error)
 		}
