@@ -136,9 +136,9 @@ func main() {
 			default:
 				logger.Fatal("Unsupported logtype:", config.Logtype)
 			}
-		}
 
-		lastSensors = sensors
+			lastSensors = sensors
+		}
 
 		time.Sleep(time.Duration(config.PollInterval) * time.Second)
 	}
