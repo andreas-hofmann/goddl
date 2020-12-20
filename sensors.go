@@ -112,6 +112,10 @@ func (si SensorInfo) SensorValue() string {
 		return s.Value()
 	}
 }
+func (si SensorInfo) Valid() bool {
+	_, err := si.Sensor()
+	return err == nil
+}
 
 type SensorMap map[int]SensorInfo
 
@@ -119,7 +123,9 @@ func (sm *SensorMap) HeaderStrings() []string {
 	var result []string
 	result = append(result, "Timestamp")
 	for i := 1; i <= len(*sm); i++ {
-		result = append(result, (*sm)[i].Name)
+		if (*sm)[i].Valid() {
+			result = append(result, (*sm)[i].Name)
+		}
 	}
 	return result
 }
@@ -128,7 +134,9 @@ func (sm *SensorMap) DataStrings() []string {
 	var result []string
 	result = append(result, time.Now().Format("2006-01-02 15:04:05"))
 	for i := 1; i <= len(*sm); i++ {
-		result = append(result, (*sm)[i].SensorValue())
+		if (*sm)[i].Valid() {
+			result = append(result, (*sm)[i].SensorValue())
+		}
 	}
 	return result
 }
