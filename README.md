@@ -16,4 +16,4 @@ After a key was registered, it will poll all sensors from the gateway and contin
 
 Simple as that.
 
-So far, this small program only logs temperature and humidity. More to come. Eventually.
+So far, this small program only logs temperature, humidity and pressure. More to come. Eventually.
