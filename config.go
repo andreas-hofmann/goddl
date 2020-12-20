@@ -19,6 +19,7 @@ type Config struct {
 	ApiKey       string
 	RemoteIp     string
 	Logfile      string
+	Logtype      string
 	PollInterval int
 }
 
@@ -27,6 +28,7 @@ func NewConfig() Config {
 		ApiKey:       "",
 		RemoteIp:     "localhost",
 		Logfile:      "./log.csv",
+		Logtype:      "csv",
 		PollInterval: 60,
 	}
 }
