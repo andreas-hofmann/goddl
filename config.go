@@ -54,7 +54,7 @@ func (c *Config) Write(path string) error {
 		return ConfigError{fmt.Sprint("Error saving config: ", err)}
 	}
 
-	err = ioutil.WriteFile(path, buf, 0644)
+	err = ioutil.WriteFile(path, buf, 0600)
 	if err != nil {
 		return ConfigError{fmt.Sprint("Error writing config file: ", err)}
 	}
