@@ -18,6 +18,7 @@ func main() {
 		Configfile  string `default:"./config.yaml"`
 		StoreConfig bool   `default:"false"`
 		Debug       bool   `default:"false"`
+		Logtype     string `default:"csv" help:"The data format to log. Possible values: json,csv"`
 	}
 
 	arg.MustParse(&args)
@@ -49,6 +50,19 @@ func main() {
 
 	if args.Apikey != "" {
 		config.ApiKey = args.Apikey
+	}
+
+	if args.Logtype != "" {
+		config.Logtype = args.Logtype
+	}
+
+	switch config.Logtype {
+	case "csv":
+		logger.Debug("Logging CSV data.")
+	case "json":
+		logger.Debug("Logging JSON data.")
+	default:
+		logger.Fatal("Invalid log format:", args.Logtype)
 	}
 
 	if config.ApiKey == "" {
@@ -93,20 +107,32 @@ func main() {
 		}
 
 		if !reflect.DeepEqual(lastSensors, sensors) {
-			if !headerWritten {
-				if csvWriter.Write(sensors.HeaderStrings()) != nil {
-					logger.Fatal("Error writing header to logfile")
+			if args.Logtype == "csv" {
+				if !headerWritten {
+					if csvWriter.Write(sensors.HeaderStrings()) != nil {
+						logger.Fatal("Error writing header to logfile")
+					}
+					headerWritten = true
+					logger.Debug("Header ->", sensors.HeaderStrings())
 				}
-				headerWritten = true
-				logger.Debug("Header ->", sensors.HeaderStrings())
-			}
 
-			if csvWriter.Write(sensors.DataStrings()) != nil {
-				logger.Fatal("Error writing data to logfile")
-			}
-			logger.Debug("Data   ->", sensors.DataStrings())
+				if csvWriter.Write(sensors.DataStrings()) != nil {
+					logger.Fatal("Error writing data to logfile")
+				}
 
-			csvWriter.Flush()
+				csvWriter.Flush()
+
+				logger.Debug("Data   ->", sensors.DataStrings())
+			} else if args.Logtype == "json" {
+				data, err := sensors.Json(false)
+				if err != nil {
+					logger.Fatal("Error writing data to logfile")
+				}
+
+				logfile.Write(data)
+
+				logger.Debug("Read data:", string(data))
+			}
 		}
 
 		lastSensors = sensors
