@@ -62,7 +62,7 @@ func main() {
 	case "json":
 		logger.Debug("Logging JSON data.")
 	default:
-		logger.Fatal("Invalid log format:", args.Logtype)
+		logger.Fatal("Invalid log format:", config.Logtype)
 	}
 
 	if config.ApiKey == "" {
@@ -107,7 +107,8 @@ func main() {
 		}
 
 		if !reflect.DeepEqual(lastSensors, sensors) {
-			if args.Logtype == "csv" {
+			switch config.Logtype {
+			case "csv":
 				if !headerWritten {
 					if csvWriter.Write(sensors.HeaderStrings()) != nil {
 						logger.Fatal("Error writing header to logfile")
@@ -123,7 +124,7 @@ func main() {
 				csvWriter.Flush()
 
 				logger.Debug("Data   ->", sensors.DataStrings())
-			} else if args.Logtype == "json" {
+			case "json":
 				data, err := sensors.Json(false)
 				if err != nil {
 					logger.Fatal("Error writing data to logfile")
@@ -132,6 +133,8 @@ func main() {
 				logfile.Write(data)
 
 				logger.Debug("Read data:", string(data))
+			default:
+				logger.Fatal("Unsupported logtype:", config.Logtype)
 			}
 		}
 
