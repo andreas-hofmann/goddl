@@ -98,13 +98,13 @@ func main() {
 					logger.Fatal("Error writing header to logfile")
 				}
 				headerWritten = true
-				logger.Debug(sensors.HeaderStrings())
+				logger.Debug("Header ->", sensors.HeaderStrings())
 			}
 
 			if csvWriter.Write(sensors.DataStrings()) != nil {
 				logger.Fatal("Error writing data to logfile")
 			}
-			logger.Debug(sensors.DataStrings())
+			logger.Debug("Data   ->", sensors.DataStrings())
 
 			csvWriter.Flush()
 		}
