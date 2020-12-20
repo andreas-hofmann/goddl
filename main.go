@@ -17,11 +17,16 @@ func main() {
 		Logfile     string `default:"./log.csv"`
 		Configfile  string `default:"./config.yaml"`
 		StoreConfig bool   `default:"false"`
+		Debug       bool   `default:"false"`
 	}
+
+	arg.MustParse(&args)
 
 	logger := log.New(os.Stderr)
 
-	arg.MustParse(&args)
+	if args.Debug {
+		logger.WithDebug()
+	}
 
 	var config Config = NewConfig()
 
@@ -93,11 +98,13 @@ func main() {
 					logger.Fatal("Error writing header to logfile")
 				}
 				headerWritten = true
+				logger.Debug(sensors.HeaderStrings())
 			}
 
 			if csvWriter.Write(sensors.DataStrings()) != nil {
 				logger.Fatal("Error writing data to logfile")
 			}
+			logger.Debug(sensors.DataStrings())
 
 			csvWriter.Flush()
 		}
