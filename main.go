@@ -14,7 +14,7 @@ func main() {
 	var args struct {
 		Ip          string
 		Apikey      string
-		Logfile     string `default:"./log.csv"`
+		Logfile     string `default:"./data.log"`
 		Configfile  string `default:"./config.yaml"`
 		StoreConfig bool   `default:"false"`
 		Debug       bool   `default:"false"`

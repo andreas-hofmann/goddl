@@ -27,7 +27,7 @@ func NewConfig() Config {
 	return Config{
 		ApiKey:       "",
 		RemoteIp:     "localhost",
-		Logfile:      "./log.csv",
+		Logfile:      "./data.log",
 		Logtype:      "csv",
 		PollInterval: 60,
 	}
