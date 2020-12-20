@@ -49,6 +49,21 @@ func (s SensorTemperature) Value() string {
 	return fmt.Sprintf("%.02f°C", float64(s.Temperature)/100.0)
 }
 
+type SensorPressure struct {
+	Pressure    int
+	Lastupdated string
+}
+
+func (s SensorPressure) String() string {
+	return fmt.Sprintf("Pressure: %d", s.Pressure)
+}
+func (s SensorPressure) LastUpdated() string {
+	return fmt.Sprintf("%s", s.Lastupdated)
+}
+func (s SensorPressure) Value() string {
+	return fmt.Sprintf("%dhPA", s.Pressure)
+}
+
 type SensorInfo struct {
 	Etag             string
 	Manufacturername string
@@ -81,6 +96,10 @@ func (si SensorInfo) Sensor() (Sensor, error) {
 		var hum SensorHumidity
 		json.Unmarshal(si.State, &hum)
 		return hum, nil
+	case "ZHAPressure":
+		var pres SensorPressure
+		json.Unmarshal(si.State, &pres)
+		return pres, nil
 	default:
 		return nil, SensorError{"Unknown sensor"}
 	}
