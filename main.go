@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"math"
 	"os"
 	"reflect"
 	"time"
@@ -9,6 +10,34 @@ import (
 	"github.com/alexflint/go-arg"
 	"github.com/withmandala/go-log"
 )
+
+const tabsize float64 = 8.0
+
+func printSnap(logger *log.Logger, sensors SensorMap) {
+	maxlen := 0
+	for i := 1; i <= len(sensors); i++ {
+		if sensors[i].Valid() {
+			length := len(sensors[i].Name)
+			if length > maxlen {
+				maxlen = length
+			}
+		}
+	}
+
+	for i := 1; i <= len(sensors); i++ {
+		if sensors[i].Valid() {
+			separators := ""
+			maxTabs := int(math.Ceil(float64(maxlen)) / tabsize)
+			nrTabs := int(math.Ceil(float64(len(sensors[i].Name))) / tabsize)
+
+			for i := nrTabs; i <= maxTabs; i++ {
+				separators += "\t"
+			}
+
+			logger.Info("Found sensor", sensors[i].Name, separators, sensors[i].Type[3:], ":", sensors[i].SensorValue())
+		}
+	}
+}
 
 func main() {
 	var args struct {
@@ -19,6 +48,7 @@ func main() {
 		StoreConfig bool   `help:"Store the current config (+ a new API key) to the configfile. Default: false"`
 		Debug       bool   `help:"Enable debug messages. Default: false"`
 		Logtype     string `help:"The data format to log. Possible values: json,csv. Default: csv"`
+		Snap        bool   `help:"If set, only poll the current sensor state once, and output the values on the terminal."`
 	}
 
 	arg.MustParse(&args)
@@ -100,10 +130,16 @@ func main() {
 	var headerWritten bool = false
 	csvWriter := csv.NewWriter(logfile)
 
+Pollloop:
 	for {
 		sensors, error := GetSensorMap(config.Remote, config.ApiKey)
 		if error != nil {
 			logger.Fatal("Error fetching sensor list:", error)
+		}
+
+		if args.Snap {
+			printSnap(logger, sensors)
+			break Pollloop
 		}
 
 		if !reflect.DeepEqual(lastSensors, sensors) {
