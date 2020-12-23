@@ -11,32 +11,81 @@ import (
 	"github.com/withmandala/go-log"
 )
 
-const tabsize float64 = 8.0
+type SensorData struct {
+	Name  string
+	Type  string
+	Value string
+}
 
-func printSnap(logger *log.Logger, sensors SensorMap) {
-	maxlen := 0
-	for i := 1; i <= len(sensors); i++ {
-		if sensors[i].Valid() {
-			length := len(sensors[i].Name)
-			if length > maxlen {
-				maxlen = length
+type PrintStructError struct {
+	E string
+}
+
+func (se PrintStructError) Error() string {
+	return se.E
+}
+
+func addEntries(slice []int, from, to int) int {
+	result := 0
+	for i := from; i < to; i++ {
+		result += slice[i]
+	}
+	return result
+}
+
+func PrintsStructSlice(s interface{}) (string, error) {
+	const tabsize float64 = 8.0
+
+	v := reflect.ValueOf(s)
+
+	if v.Type().Kind() != reflect.Slice {
+		return "", PrintStructError{"Not a slice"}
+	}
+
+	if v.Len() == 0 {
+		return "", PrintStructError{"Empty slice"}
+	}
+
+	if v.Index(0).Type().Kind() != reflect.Struct {
+		return "", PrintStructError{"Slice doesn't contain a struct"}
+	}
+
+	nrFields := v.Index(0).Type().NumField()
+	maxlenFields := make([]int, nrFields)
+
+	var result string = ""
+
+	// Find the longest strings for all fields
+	for i := 0; i < v.Len(); i++ {
+		for field := 0; field < nrFields; field++ {
+			fieldVal := v.Index(i).Field(field)
+			if fieldVal.Kind() != reflect.String {
+				return "", PrintStructError{"Struct member not a string"}
+			}
+			if maxlenFields[field] < len(fieldVal.String()) {
+				maxlenFields[field] = len(fieldVal.String())
 			}
 		}
 	}
 
-	for i := 1; i <= len(sensors); i++ {
-		if sensors[i].Valid() {
-			separators := ""
-			maxTabs := int(math.Ceil(float64(maxlen)) / tabsize)
-			nrTabs := int(math.Ceil(float64(len(sensors[i].Name))) / tabsize)
+	// Extract the values + insert separators.
+	for i := 0; i < v.Len(); i++ {
+		result += "\n"
+		for field := 0; field < nrFields; field++ {
+			fieldVal := v.Index(i).Field(field)
+
+			result += fieldVal.String()
+
+			maxTabs := int(math.Ceil(float64(maxlenFields[field])) / tabsize)
+			nrTabs := int(math.Ceil(float64(len(fieldVal.String()))) / tabsize)
 
 			for i := nrTabs; i <= maxTabs; i++ {
-				separators += "\t"
+				result += "\t"
 			}
-
-			logger.Info("Found sensor", sensors[i].Name, separators, sensors[i].Type[3:], ":", sensors[i].SensorValue())
 		}
 	}
+
+	return result, nil
 }
 
 func main() {
@@ -138,7 +187,20 @@ Pollloop:
 		}
 
 		if args.Snap {
-			printSnap(logger, sensors)
+			var data []SensorData
+			for i := 0; i <= len(sensors); i++ {
+				if sensors[i].Valid() {
+					data = append(data, SensorData{sensors[i].Name, sensors[i].Type[3:], sensors[i].SensorValue()})
+				}
+			}
+
+			snap, err := PrintsStructSlice(data)
+			if err == nil {
+				logger.Info(snap)
+			} else {
+				logger.Warn("Error printing snap:", err)
+			}
+
 			break Pollloop
 		}
 
