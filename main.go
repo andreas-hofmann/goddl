@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/alexflint/go-arg"
@@ -62,8 +63,9 @@ func PrintsStructSlice(s interface{}) (string, error) {
 			if fieldVal.Kind() != reflect.String {
 				return "", PrintStructError{"Struct member not a string"}
 			}
-			if maxlenFields[field] < len(fieldVal.String()) {
-				maxlenFields[field] = len(fieldVal.String())
+			len := strings.Count(fieldVal.String(), "") - 1
+			if maxlenFields[field] < len {
+				maxlenFields[field] = len
 			}
 		}
 	}
@@ -77,7 +79,7 @@ func PrintsStructSlice(s interface{}) (string, error) {
 			result += fieldVal.String()
 
 			maxTabs := int(math.Ceil(float64(maxlenFields[field])) / tabsize)
-			nrTabs := int(math.Ceil(float64(len(fieldVal.String()))) / tabsize)
+			nrTabs := int(math.Ceil(float64(strings.Count(fieldVal.String(), "")-1)) / tabsize)
 
 			for i := nrTabs; i <= maxTabs; i++ {
 				result += "\t"
